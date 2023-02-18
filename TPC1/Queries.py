@@ -1,5 +1,6 @@
 from Store import Person, parse_and_store
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 
 # Query 1
 # Total -> M: 670, F: 169
@@ -14,18 +15,37 @@ DoencaF = 0
 # [30-34], [35-39], [40-44], ...
 # 21 faixas etárias de 0 até 100+
 
+faixas_etarias = []
+for i in range(0, 101, 5):
+    if i < 100:
+        label = f"{i}-{i+4}"
+    else:
+        label = "100+"
+    faixas_etarias.append(label)
+
+
 pessoas_faixas_Doenca = [0] * 21
 pessoas_faixas_NDoenca = [0] * 21
 
 # Query 3
 # 10 em 10 unidades
 
+int_col = []
+for i in range(0, 605, 10):
+    if i < 605:
+        label = f"{i}-{i+9}"
 
-def stats():
+    int_col.append(label)
 
-    pdict = parse_and_store("myheart.csv")
+pessoas_col_Doenca = [0] * 61
+pessoas_col_NDoenca = [0] * 61
 
-    global M,F,DoencaM,DoencaF,pessoas_faixas
+
+def stats(path):
+
+    pdict = parse_and_store(path)
+
+    global M,F,DoencaM,DoencaF,pessoas_faixas,pessoas_col_Doenca,pessoas_col_NDoenca
 
     for key, value in pdict.items():
 
@@ -57,8 +77,20 @@ def stats():
         else:
             pessoas_faixas_NDoenca[age_range]+= 1
 
+        #Query 3
 
-def query1():
+        col = int(value.colesterol)
+
+        col_range = col // 10
+
+        if(value.temDoenca == '1'):
+            pessoas_col_Doenca[col_range]+= 1
+        
+        else:
+            pessoas_col_NDoenca[col_range]+= 1
+
+
+def query1_graph():
 
     # Percentagens
     DoencaMPerc = (DoencaM / M) * 100
@@ -82,21 +114,27 @@ def query1():
     plt.show()
 
 
-    m = ('M', DoencaM, round(DoencaMPerc, 2))
-    f = ('F', DoencaF, round(DoencaFPerc, 2))
+def query1_table():
 
-    return (m,f)
+    NoDoencaM = M-DoencaM
+    NoDoencaF = F-DoencaF
+    
+    table = [["Sexo","Com Doença","Sem Doença","Total"],["Masculino",DoencaM,NoDoencaM,M],
+             ["Feminino",DoencaF,NoDoencaF,F],["Total",DoencaM+DoencaF,NoDoencaM+NoDoencaF,M+F]]
+    
+    print("Distribuição da Doença por sexo")
+    print(tabulate(table, tablefmt = 'fancy_grid'))
+    
+    return table
 
-def query2():
-
-    age_labels = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80-84', '85-89', '90-94', '95-99', '100+']
+def query2_graph():
 
     fig, ax = plt.subplots()
 
     # Set the x-axis ticks and labels
-    x_pos = [i for i in range(len(age_labels))]
+    x_pos = [i for i in range(len(faixas_etarias))]
     ax.set_xticks(x_pos)
-    ax.set_xticklabels(age_labels, rotation=90)
+    ax.set_xticklabels(faixas_etarias, rotation=90)
 
     # Set the y-axis and x-axis label
     ax.set_ylabel('Número de Pessoas')
@@ -111,18 +149,89 @@ def query2():
     ax.legend()
 
     # Set the title of the graph
-    ax.set_title('Número de pessoas com e sem a Doença por faixa etária')
+    ax.set_title('Distribuição da doença pela faixa etária')
 
     plt.xlabel('Faixas etárias')
 
     # Show the graph
     plt.show()
 
+def query2_table():
+
+    table = [["Faixa etária", "Com Doença", "Sem Doença", "Total"]]
+
+    for faixa in faixas_etarias:
+        idx = faixas_etarias.index(faixa)
+        total = pessoas_faixas_Doenca[idx] + pessoas_faixas_NDoenca[idx]
+        linha = [faixa, pessoas_faixas_Doenca[idx], pessoas_faixas_NDoenca[idx], total]
+        table.append(linha)
+    
+    print("Distribuição da doença pela faixa etária")
+    print(tabulate(table, tablefmt = 'fancy_grid'))
+
+    return table
+
+def query3_graph():
+
+    fig, ax = plt.subplots()
+
+    # Set the x-axis ticks and labels
+    x_pos = [i for i in range(len(int_col))]
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(int_col, rotation=90)
+
+    # Set the y-axis and x-axis label
+    ax.set_ylabel('Número de Pessoas')
+    plt.xlabel('Colesterol')
+    
+
+    # Create the bar plots for Doenca and NDoenca
+    ax.bar(x_pos, pessoas_col_Doenca, align='center', alpha=0.5, label='Doenca')
+    ax.bar(x_pos, pessoas_col_NDoenca, align='center', alpha=0.5, label='NDoenca', bottom=pessoas_col_Doenca)
+
+    # Add a legend
+    ax.legend()
+
+    # Set the title of the graph
+    ax.set_title('Distribuição da doença pelos valores de colesterol')
+
+    plt.xlabel('Colesterol')
+
+    # Show the graph
+    plt.show()
+
+def query3_table():
+
+    table = [["Colesterol", "Com Doença", "Sem Doença", "Total"]]
+
+    for col in int_col:
+        idx = int_col.index(col)
+        total = pessoas_col_Doenca[idx] + pessoas_col_NDoenca[idx]
+        linha = [col, pessoas_col_Doenca[idx], pessoas_col_NDoenca[idx], total]
+        table.append(linha)
+    
+    print("Distribuição da doença pelos valores de colesterol")
+    print(tabulate(table, tablefmt = 'fancy_grid'))
+
+    return table
+
+def print_tables():
+
+    query1_table()
+    query2_table()
+    query3_table()
+
+def show_graphs():
+
+    query1_graph()
+    query2_graph()
+    query3_graph()
 
 def main():
 
-    stats()
-    #print(query1())
-    print(query2())
+    stats("myheart.csv")
+    
+    print_tables()
+    show_graphs()
 
 main()
