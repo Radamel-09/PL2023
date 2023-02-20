@@ -142,8 +142,8 @@ def query2_graph():
     
 
     # Create the bar plots for Doenca and NDoenca
-    ax.bar(x_pos, pessoas_faixas_Doenca, align='center', alpha=0.5, label='Doenca')
-    ax.bar(x_pos, pessoas_faixas_NDoenca, align='center', alpha=0.5, label='NDoenca', bottom=pessoas_faixas_Doenca)
+    ax.bar(x_pos, pessoas_faixas_Doenca, align='center', alpha=0.5, label='Doença')
+    ax.bar(x_pos, pessoas_faixas_NDoenca, align='center', alpha=0.5, label='Sem Doença', bottom=pessoas_faixas_Doenca)
 
     # Add a legend
     ax.legend()
@@ -186,8 +186,8 @@ def query3_graph():
     
 
     # Create the bar plots for Doenca and NDoenca
-    ax.bar(x_pos, pessoas_col_Doenca, align='center', alpha=0.5, label='Doenca')
-    ax.bar(x_pos, pessoas_col_NDoenca, align='center', alpha=0.5, label='NDoenca', bottom=pessoas_col_Doenca)
+    ax.bar(x_pos, pessoas_col_Doenca, align='center', alpha=0.5, label='Doença')
+    ax.bar(x_pos, pessoas_col_NDoenca, align='center', alpha=0.5, label='Sem Doença', bottom=pessoas_col_Doenca)
 
     # Add a legend
     ax.legend()
@@ -226,12 +226,3 @@ def show_graphs():
     query1_graph()
     query2_graph()
     query3_graph()
-
-def main():
-
-    stats("myheart.csv")
-    
-    print_tables()
-    show_graphs()
-
-main()
