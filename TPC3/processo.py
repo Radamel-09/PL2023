@@ -6,7 +6,7 @@ frequency_dict = {}
 names_dict = {}
 surnames_dict = {}
 
-def frequency_per_year(line):
+def frequency(line):
 
     global matches,frequency_dict
 
@@ -130,7 +130,7 @@ def main():
             content = f.read()
 
             for line in content.splitlines():
-                frequency_per_year(line)
+                frequency(line)
 
     print(matches)
   
