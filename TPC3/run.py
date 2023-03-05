@@ -5,8 +5,8 @@ import time
 
 def menu():
 
-    #path = input("Qual o caminho para o ficheiro?")
-    path = "processos.txt"
+    path = input("Qual o caminho para o ficheiro?")
+    #path = "processos.txt"
 
     if(not exists(path)):
         print("Ficheiro não existe.")
