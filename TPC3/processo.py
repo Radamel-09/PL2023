@@ -147,9 +147,8 @@ def show_relacoes():
     print(sorted_dict)
 
 def convert_json():
-    for reg in json_reg:
-        new_reg = str(reg).replace("'", '"')
-        print(new_reg)
+    new_reg = str(json_reg).replace("'", '"')
+    print(new_reg)
         
 
 def main():
