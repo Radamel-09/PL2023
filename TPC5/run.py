@@ -5,48 +5,57 @@ saldo = (0,0)
 def handler(texto):
 
     lev = re.compile(r"LEVANTAR")
-    pousar = re.compile(r"POUSAR")
-    abortar = re.compile(r"ABORTAR")
-    numeros = re.compile(r"T=(\d{9})")
-    moedas = re.compile(r"MOEDA\s(\d+\w,\s*)+(\d+\w)\.")
 
     while not lev.match(texto):
         print('maq: "Apenas a ação "LEVANTAR" está disponível. Aplique-a para começar as operações"')
         texto = input(">> ")
 
     if lev.match(texto):
-        input_moeda = input('maq: "Introduza moedas."\n>> ')
+        add_coins()
+        phone_number()
+
+def add_coins():
+
+    abortar = re.compile(r"ABORTAR")
+
+    input_moeda = input('maq: "Introduza moedas."\n>> ')
         
-        if abortar.match(input_moeda):
+    if abortar.match(input_moeda):
+        handle_abortar()
+
+    else:
+        moedas_invalidas_saldo = calculo_saldo(input_moeda)
+        if moedas_invalidas_saldo:
+            print('maq: "',end = " ")
+            print_invalidas(moedas_invalidas_saldo)
+            print('- moeda(s) inválida(s); saldo = ' + saldo_to_string(saldo) + '"')
+        else:
+            print('maq: "Saldo = ' + saldo_to_string(saldo) + '"')
+        
+def phone_number():
+
+    pousar = re.compile(r"POUSAR")
+    abortar = re.compile(r"ABORTAR")
+    numeros = re.compile(r"T=(\d{9})")
+
+    input_numero = input('>> ')
+
+    if abortar.match(input_numero):
+        handle_abortar()
+
+    #fazer opção para inserir mais moedas
+    
+    while not numeros.match(input_numero):
+        numero_errado = input('maq: "Esse número não é permitido neste telefone. Queira discar novo número com "T=XXXXXXXXX"!\n>> ')   
+        if abortar.match(numero_errado):
             handle_abortar()
 
-        else:
-            moedas_invalidas_saldo = calculo_saldo(input_moeda)
-            if moedas_invalidas_saldo:
-                print('maq: "',end = " ")
-                print_invalidas(moedas_invalidas_saldo)
-                print('- moeda(s) inválida(s); saldo = ' + saldo_to_string(saldo) + '"')
-            else:
-                print('maq: "Saldo = ' + saldo_to_string(saldo) + '"')
-            
-            input_numero = input('>> ')
-
-            if abortar.match(input_numero):
-                handle_abortar()
-
-            #fazer opção para inserir mais moedas
-            
-            while not numeros.match(input_numero):
-                numero_errado = input('maq: "Esse número não é permitido neste telefone. Queira discar novo número com "T=XXXXXXXXX"!\n>> ')   
-                if abortar.match(numero_errado):
-                    handle_abortar()
-
-            if numeros.match(input_numero):
-                ultima_op = input('maq: "saldo = ' + saldo_to_string(saldo) + '"\n>> ')
-                while not pousar.match(ultima_op):
-                    ultima_op = input('maq: "Apenas a ação "POUSAR" está disponível. Após isso pode reiniciar a máquina e fazer as operações que necessita.\n>> ')   
-                
-                handle_pousar()
+    if numeros.match(input_numero):
+        ultima_op = input('maq: "saldo = ' + saldo_to_string(saldo) + '"\n>> ')
+        while not pousar.match(ultima_op):
+            ultima_op = input('maq: "Apenas a ação "POUSAR" está disponível. Após isso pode reiniciar a máquina e fazer as operações que necessita.\n>> ')   
+        
+        handle_pousar()
 
 
 def saldo_to_nums(texto):
