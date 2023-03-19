@@ -2,6 +2,10 @@ import re
 
 saldo = (0,0)
 
+moedas = re.compile(r"MOEDA\s(\d+(e|c),\s)*(\d+(e|c))\.")
+numeros = re.compile(r"(T=(?!00)(?!601|604|00)\d{9}$)|(T=00\d{7,13}$)")
+abortar = re.compile(r"ABORTAR")
+
 def handler(texto):
 
     lev = re.compile(r"LEVANTAR")
@@ -16,14 +20,12 @@ def handler(texto):
 
 def add_coins():
 
-    abortar = re.compile(r"ABORTAR")
-
-    input_moeda = input('maq: "Introduza moedas."\n>> ')
+    input_moeda = input('maq: "Introduza moedas.*Para chamadas verdes faça "MOEDA 0c""\n>> ')
         
     if abortar.match(input_moeda):
         handle_abortar()
 
-    else:
+    elif (moedas.match(input_moeda)):
         moedas_invalidas_saldo = calculo_saldo(input_moeda)
         if moedas_invalidas_saldo:
             print('maq: "',end = " ")
@@ -31,30 +33,34 @@ def add_coins():
             print('- moeda(s) inválida(s); saldo = ' + saldo_to_string(saldo) + '"')
         else:
             print('maq: "Saldo = ' + saldo_to_string(saldo) + '"')
-        
+    else:
+        add_coins()
+
 def phone_number():
 
     pousar = re.compile(r"POUSAR")
-    abortar = re.compile(r"ABORTAR")
-    numeros = re.compile(r"T=(\d{9})")
 
     input_numero = input('>> ')
 
     if abortar.match(input_numero):
         handle_abortar()
 
-    #fazer opção para inserir mais moedas
-    
-    while not numeros.match(input_numero):
-        numero_errado = input('maq: "Esse número não é permitido neste telefone. Queira discar novo número com "T=XXXXXXXXX"!\n>> ')   
-        if abortar.match(numero_errado):
-            handle_abortar()
+    if not numeros.match(input_numero):
+        print('maq: "Esse número não é permitido neste telefone. Queira discar novo número com "T=XXXXXXXXX"!')   
+        phone_number()
 
     if numeros.match(input_numero):
-        ultima_op = input('maq: "saldo = ' + saldo_to_string(saldo) + '"\n>> ')
-        while not pousar.match(ultima_op):
-            ultima_op = input('maq: "Apenas a ação "POUSAR" está disponível. Após isso pode reiniciar a máquina e fazer as operações que necessita.\n>> ')   
-        
+        check_saldo_suficiente = calculo_numero(input_numero)
+
+        if(check_saldo_suficiente==True):
+            ultima_op = input('maq: "saldo = ' + saldo_to_string(saldo) + '"\n>> ')
+            while not pousar.match(ultima_op):
+                ultima_op = input('maq: "Apenas a ação "POUSAR" está disponível. Após isso pode reiniciar a máquina e fazer as operações que necessita.\n>> ')   
+        else: 
+            print('maq: "Saldo insuficente: necessita no minimo de ' + check_saldo_suficiente + '."')
+            add_coins()
+            phone_number()
+        troco()
         handle_pousar()
 
 
@@ -67,18 +73,18 @@ def saldo_to_string(nums):
 
 def calculo_saldo(input_moedas):
 
-    moeda = re.match(r"MOEDA\s(\d+\w,\s)+(\d+\w)\.",input_moedas)
+    moeda = moedas.match(input_moedas)
     
     if moeda:
-        moedas = re.findall(r"\s(\d+\w),",input_moedas)
+        lista_moedas = re.findall(r"\s(\d+\w),",input_moedas)
         ultima_moeda = re.search(r"\s(\d+\w)\.",input_moedas)
-        moedas.append(ultima_moeda.group(1))
-        invalidas = validar_moedas(moedas)
+        lista_moedas.append(ultima_moeda.group(1))
+        invalidas = validar_moedas(lista_moedas)
     
     return (invalidas)
 
 def validar_moedas(lista_moedas):
-    moedas_validas = ["1c","2c","5c","10c","20c","50c","1e","2e"]
+    moedas_validas = ["0c","1c","2c","5c","10c","20c","50c","1e","2e"]
     moedas_invalidas = []
 
     for moeda in lista_moedas:
@@ -108,22 +114,82 @@ def adicionar_moeda(moeda):
 
     saldo = (int(saldo_cents/100),saldo_cents%100)
 
-def saldo_to_cents():
-    return saldo[0]*100+saldo[1]
+def saldo_to_cents(nums):
+    return nums[0]*100+nums[1]
+
+def cents_to_saldo(cents):
+    return (int(cents/100),cents%100)
 
 def print_invalidas(invalidas):
     print(*invalidas, end=" ")
 
 def calculo_numero(input_numero):
-    print("not done")
-    return 0
 
+    nacionais = re.compile(r"T=2\d{8}$")
+    #verdes = re.compile(r"^800\d{6}$")
+    azuis = re.compile(r"T=808\d{6}$")
+
+    global saldo    
+    saldo_necessario = 0
+    cents = saldo_to_cents(saldo)
+
+    chamadas = numeros.match(input_numero).group(1)
+    
+    internacionais = numeros.match(input_numero).group(2)
+    
+    if chamadas:
+        if nacionais.match(chamadas):
+            saldo_necessario = 25
+
+        if azuis.match(chamadas):
+            saldo_necessario = 10
+
+        if cents >= saldo_necessario: 
+            cents -= saldo_necessario
+            saldo = cents_to_saldo(cents)
+            return True
+        else:
+            return saldo_to_string(cents_to_saldo(saldo_necessario))
+    
+    elif internacionais:
+        saldo_necessario = 150
+        if cents >= saldo_necessario: 
+            cents -= saldo_necessario
+            saldo = cents_to_saldo(cents)
+            return True
+        else:
+            return saldo_to_string(cents_to_saldo(saldo_necessario))
+        
 def calculo_final():
     
     return saldo_to_string(saldo) 
 
+def troco(): 
+    moedas_troco = saldo_to_cents(saldo)
+    moedas_validas = {200:0,100:0,50:0,20:0,10:0,5:0,2:0,1:0}
+
+    for i in moedas_validas.keys():
+        if moedas_troco%i>0 or moedas_troco%i==0:
+            moedas_validas[i] = int(moedas_troco/i) 
+            moedas_troco -= moedas_validas[i]*i
+
+    list_new_keys = ["2e","1e","50c","20c","10c","5c","2c","1c"]
+    new_dict = {}
+
+    for new_key, old_key in zip(list_new_keys, moedas_validas):
+        value = moedas_validas[old_key]
+        new_dict[new_key] = value
+
+    str_troco = ""
+    for j in new_dict.items():
+        if j[1] != 0:
+            str_troco += " " + str(j[1]) + "x" + j[0] + ","
+
+    str_troco = str_troco[:-1]+";"
+    return "; moedas=" + str_troco
+
 def handle_pousar():
-    print('maq: "troco=' + calculo_final() + '; Volte Sempre!"\n')
+    print('maq: "troco= ' + calculo_final() + troco() + ' Volte Sempre!"\n')
 
 def handle_abortar():    
     print('maq: "Recolha as moedas ' + saldo_to_string(saldo) + '."\n')
