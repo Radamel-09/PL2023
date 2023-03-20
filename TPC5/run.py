@@ -3,7 +3,7 @@ import re
 saldo = (0,0)
 
 moedas = re.compile(r"MOEDA\s(\d+(e|c),\s)*(\d+(e|c))\.")
-numeros = re.compile(r"(T=(?!00)(?!601|604|00)\d{9}$)|(T=00\d{7,13}$)")
+numeros = re.compile(r"T=(2\d{8}|808\d{6}|800\d{6}$)|T=(00\d{7,13}$)|T=(601\d{6}|604\d{6})$")
 abortar = re.compile(r"ABORTAR")
 
 def handler(texto):
@@ -15,10 +15,10 @@ def handler(texto):
         texto = input(">> ")
 
     if lev.match(texto):
-        add_coins()
-        phone_number()
+        adicionar_moedas()
+        ligar_numero()
 
-def add_coins():
+def adicionar_moedas():
 
     input_moeda = input('maq: "Introduza moedas.*Para chamadas verdes faça "MOEDA 0c""\n>> ')
         
@@ -34,9 +34,9 @@ def add_coins():
         else:
             print('maq: "Saldo = ' + saldo_to_string(saldo) + '"')
     else:
-        add_coins()
+        adicionar_moedas()
 
-def phone_number():
+def ligar_numero():
 
     pousar = re.compile(r"POUSAR")
 
@@ -46,10 +46,15 @@ def phone_number():
         handle_abortar()
 
     if not numeros.match(input_numero):
-        print('maq: "Esse número não é permitido neste telefone. Queira discar novo número com "T=XXXXXXXXX"!')   
-        phone_number()
+        print('maq: "Esse número não existe. Queira discar novo número com "T=XXXXXXXXX"!')   
+        ligar_numero()
 
-    if numeros.match(input_numero):
+    if numeros.match(input_numero) and numeros.match(input_numero).group(3):
+        print('maq: "Esse número não é permitido neste telefone. Queira discar novo número com "T=XXXXXXXXX"!')   
+        ligar_numero()
+
+    if numeros.match(input_numero) and not numeros.match(input_numero).group(3):
+        print(numeros.match(input_numero).groups())
         check_saldo_suficiente = calculo_numero(input_numero)
 
         if(check_saldo_suficiente==True):
@@ -58,15 +63,11 @@ def phone_number():
                 ultima_op = input('maq: "Apenas a ação "POUSAR" está disponível. Após isso pode reiniciar a máquina e fazer as operações que necessita.\n>> ')   
         else: 
             print('maq: "Saldo insuficente: necessita no minimo de ' + check_saldo_suficiente + '."')
-            add_coins()
-            phone_number()
+            adicionar_moedas()
+            ligar_numero()
         troco()
         handle_pousar()
 
-
-def saldo_to_nums(texto):
-    nums = re.match(r'(\d+)e(\d+)c',texto)
-    return (nums.group(1),nums.group(2)) 
 
 def saldo_to_string(nums):
     return str(nums[0]) + "e" + str(nums[1]) + "c"
@@ -125,9 +126,9 @@ def print_invalidas(invalidas):
 
 def calculo_numero(input_numero):
 
-    nacionais = re.compile(r"T=2\d{8}$")
-    #verdes = re.compile(r"^800\d{6}$")
-    azuis = re.compile(r"T=808\d{6}$")
+    nacionais = re.compile(r"2\d{8}$")
+    #verdes = re.compile(r"800\d{6}$")
+    azuis = re.compile(r"808\d{6}$")
 
     global saldo    
     saldo_necessario = 0
