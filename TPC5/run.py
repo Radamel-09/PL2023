@@ -191,6 +191,7 @@ def troco():
 
 def handle_pousar():
     print('maq: "troco= ' + calculo_final() + troco() + ' Volte Sempre!"\n')
+    main()
 
 def handle_abortar():    
     print('maq: "Recolha as moedas ' + saldo_to_string(saldo) + '."\n')

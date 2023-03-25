@@ -151,13 +151,7 @@ def convert_json():
     print(new_reg)
         
 
-def main():
-
-    #path = input("Qual o caminho para o ficheiro?")
-    path = "processos.txt"
-
-    lines = 0
-    twenty_lines = []
+def main(path):
 
     if(not exists(path)):
         print("Ficheiro não existe.")

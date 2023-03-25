@@ -18,7 +18,7 @@ def menu():
 
         #start_time = time.time()
 
-        main()
+        main(path)
 
         #end_time = time.time()
 
